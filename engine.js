@@ -94,7 +94,7 @@ module.exports = function(options) {
             if (!redmine) {
               return true;
             }
-            return /^[A-Z0-9]+-[0-9]+$/.test(redmine);
+            return /^[0-9]+$/.test(redmine);
           },
           filter: function(redmine) {
             return redmine ? redmine.toUpperCase() : '';
@@ -159,64 +159,6 @@ module.exports = function(options) {
           message:
             'Provide a longer description of the change: (press enter to skip)\n',
           default: options.defaultBody
-        },
-        {
-          type: 'confirm',
-          name: 'isBreaking',
-          message: 'Are there any breaking changes?',
-          default: false
-        },
-        {
-          type: 'input',
-          name: 'breakingBody',
-          default: '-',
-          message:
-            'A BREAKING CHANGE commit requires a body. Please enter a longer description of the commit itself:\n',
-          when: function(answers) {
-            return answers.isBreaking && !answers.body;
-          },
-          validate: function(breakingBody, answers) {
-            return (
-              breakingBody.trim().length > 0 ||
-              'Body is required for BREAKING CHANGE'
-            );
-          }
-        },
-        {
-          type: 'input',
-          name: 'breaking',
-          message: 'Describe the breaking changes:\n',
-          when: function(answers) {
-            return answers.isBreaking;
-          }
-        },
-
-        {
-          type: 'confirm',
-          name: 'isIssueAffected',
-          message: 'Does this change affect any open issues?',
-          default: options.defaultIssues ? true : false
-        },
-        {
-          type: 'input',
-          name: 'issuesBody',
-          default: '-',
-          message:
-            'If issues are closed, the commit requires a body. Please enter a longer description of the commit itself:\n',
-          when: function(answers) {
-            return (
-              answers.isIssueAffected && !answers.body && !answers.breakingBody
-            );
-          }
-        },
-        {
-          type: 'input',
-          name: 'issues',
-          message: 'Add issue references (e.g. "fix #123", "re #123".):\n',
-          when: function(answers) {
-            return answers.isIssueAffected;
-          },
-          default: options.defaultIssues ? options.defaultIssues : undefined
         }
       ]).then(function(answers) {
         var wrapOptions = {
@@ -231,29 +173,20 @@ module.exports = function(options) {
         var scope = answers.scope ? '(' + answers.scope + ')' : '';
 
         // redmine id will be injected into body
-        var jiraid = answers.redmine ? wrap(answers.redmine, wrapOptions) : false;
+        var redmineid = answers.redmine ? wrap(answers.redmine, wrapOptions) : false;
 
         // Hard limit this line in the validate
         var head =
           answers.type +
-          (answers.redmine ? '[' + answers.redmine + ']' : '') +
           scope +
           ': ' +
-          answers.subject;
+          answers.subject +
+          (answers.redmine ? ' [#' + answers.redmine + ']' : '');
 
         // Wrap these lines at options.maxLineWidth characters
         var body = answers.body ? wrap(answers.body, wrapOptions) : false;
 
-        // Apply breaking change prefix, removing it if already present
-        var breaking = answers.breaking ? answers.breaking.trim() : '';
-        breaking = breaking
-          ? 'BREAKING CHANGE: ' + breaking.replace(/^BREAKING CHANGE: /, '')
-          : '';
-        breaking = breaking ? wrap(breaking, wrapOptions) : false;
-
-        var issues = answers.issues ? wrap(answers.issues, wrapOptions) : false;
-
-        commit(filter([head, jiraid, body, breaking, issues]).join('\n\n'));
+        commit(filter([head, body]).join('\n\n'));
       });
     }
   };
