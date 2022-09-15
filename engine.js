@@ -51,10 +51,10 @@ module.exports = function(options) {
     };
   });
 
-  // detect jira id in branch name
+  // detect redmine id in branch name
   var branchName = branch.sync() || '';
-  var jiraIdFound = branchName.match(/[A-Z]+-[0-9]+/) || [];
-  var defaultJiraId = jiraIdFound.shift();
+  var redmineIdFound = branchName.match(/[0-9]+/) || [];
+  var defaultRedmineId = redmineIdFound.shift();
 
   return {
     // When a user runs `git cz`, prompter will
@@ -86,18 +86,18 @@ module.exports = function(options) {
         },
         {
           type: 'input',
-          name: 'jira',
+          name: 'redmine',
           message:
-            "JIRA ID (e.g. WEB-12345): (press enter to skip if you don't have one)",
-          default: defaultJiraId,
-          validate: function(jira) {
-            if (!jira) {
+            "REDMINE ID (e.g. 12345): (press enter to skip if you don't have one)",
+          default: defaultRedmineId,
+          validate: function(redmine) {
+            if (!redmine) {
               return true;
             }
-            return /^[A-Z0-9]+-[0-9]+$/.test(jira);
+            return /^[A-Z0-9]+-[0-9]+$/.test(redmine);
           },
-          filter: function(jira) {
-            return jira ? jira.toUpperCase() : '';
+          filter: function(redmine) {
+            return redmine ? redmine.toUpperCase() : '';
           }
         },
         {
@@ -230,13 +230,13 @@ module.exports = function(options) {
         // parentheses are only needed when a scope is present
         var scope = answers.scope ? '(' + answers.scope + ')' : '';
 
-        // jira id will be injected into body
-        var jiraid = answers.jira ? wrap(answers.jira, wrapOptions) : false;
+        // redmine id will be injected into body
+        var jiraid = answers.redmine ? wrap(answers.redmine, wrapOptions) : false;
 
         // Hard limit this line in the validate
         var head =
           answers.type +
-          (answers.jira ? '[' + answers.jira + ']' : '') +
+          (answers.redmine ? '[' + answers.redmine + ']' : '') +
           scope +
           ': ' +
           answers.subject;
